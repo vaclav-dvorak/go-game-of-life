@@ -5,6 +5,10 @@ LDFLAGS="-s -w -X main.version=$(VERSION)-$(GIT_REV) -X main.date=$(DATE)"
 
 default: help
 
+prepare: ## Download depencies and prepare dev env
+	@go mod download
+	@go mod vendor
+
 cover:  ## Run test coverage suite
 	@go test ./... --coverprofile=cov.out
 	@go tool cover --html=cov.out

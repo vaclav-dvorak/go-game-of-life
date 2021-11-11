@@ -11,64 +11,112 @@ import (
 	"github.com/faiface/pixel/pixelgl"
 )
 
-const numCells = 3
+const numCells = 200
 
 var (
-	fullscreen    = false
-	width         = 320
-	height        = 200
-	scale         = 3.0
-	version, date = "dev", "now"
+	fullscreen    bool    = false
+	sizePx        int     = 600
+	version, date         = "dev", "now"
+	scale         float64 = float64(sizePx) / numCells
 )
 
 type Cell struct {
-	x, y    uint16
+	x, y, decay        int
 	isAlive bool
-	decay   uint8
 }
 
 var grid []Cell
 
-func countGridIndex(x, y int) uint16 {
-	return uint16(x + y*numCells)
+func getColor() []color.RGBA {
+	return []color.RGBA{
+		{2, 2, 2, 255},
+		{23, 45, 23, 255},
+		{44, 87, 44, 255},
+		{65, 129, 65, 255},
+		{86, 171, 86, 255},
+		{107, 213, 107, 255},
+		{128, 255, 128, 255},
+	}
+}
+
+func countGridIndex(x, y int) int {
+	return x + y*numCells
+}
+
+func isAlive(x, y int) int {
+	if x < 0 || x >= numCells || y < 0 || y >= numCells {
+		return 0
+	}
+	if grid[countGridIndex(x, y)].isAlive {
+		return 1
+	} else {
+		return 0
+	}
 }
 
 func initGrid() []Cell {
 	rand.Seed(time.Now().UnixNano())
-	slice := make([]Cell, numCells*numCells)
+	start := make([]Cell, numCells*numCells)
 	for x := 0; x < numCells; x++ {
 		for y := 0; y < numCells; y++ {
-			slice[countGridIndex(x, y)] = Cell{
-				x:       uint16(x),
-				y:       uint16(y),
-				isAlive: rand.Float64() > 0.5,
-				decay:   0,
+			start[countGridIndex(x, y)] = Cell{
+				x:         x,
+				y:         y,
+				isAlive:   rand.Float64() > 0.5,
+				decay:     0,
+			}
+			if start[countGridIndex(x, y)].isAlive {
+				start[countGridIndex(x, y)].decay = 6
 			}
 		}
 	}
-	return slice
+	return start
 }
 
-func minimap() *image.RGBA {
-	m := image.NewRGBA(image.Rect(0, 0, numCells, numCells))
+func nextGeneration() []Cell {
+	gen := make([]Cell, numCells*numCells)
+	for idx, cell := range grid {
+		gen[idx] = grid[idx]
+		around := isAlive(cell.x-1, cell.y-1) +
+			isAlive(cell.x, cell.y-1) +
+			isAlive(cell.x+1, cell.y-1) +
+			isAlive(cell.x-1, cell.y) +
+			isAlive(cell.x+1, cell.y) +
+			isAlive(cell.x-1, cell.y+1) +
+			isAlive(cell.x, cell.y+1) +
+			isAlive(cell.x+1, cell.y+1)
+		if around == 2 { // Do nothing
+			gen[idx].isAlive = grid[idx].isAlive
+		} else if around == 3 { // Make alive
+			gen[idx].isAlive = true
+			gen[idx].decay = 6
+		} else { // Make dead
+			gen[idx].isAlive = false
+			if cell.decay > 0 {
+				gen[idx].decay = cell.decay - 1
+			} else {
+				gen[idx].decay = 0
+			}
+		}
+	}
 
-	// for x, row := range world {
-	// 	for y, _ := range row {
-	// 		c := getColor(x, y)
-	// 		if c.A == 255 {
-	// 			c.A = 96
-	// 		}
-	// 		m.Set(x, y, c)
-	// 	}
-	// }
+	return gen
+}
 
-	return m
+func world() *image.RGBA {
+	w := image.NewRGBA(image.Rect(0, 0, numCells, numCells))
+
+	for _, cell := range grid {
+		w.Set(cell.x, cell.y, getColor()[cell.decay])
+	}
+
+	return w
 }
 
 func run() {
 	cfg := pixelgl.WindowConfig{
 		Title:       fmt.Sprintf("Game of life %s (%s)", version, date),
-		Bounds:      pixel.R(0, 0, float64(width)*scale, float64(height)*scale),
+		Bounds:      pixel.R(0, 0, float64(numCells)*scale, float64(numCells)*scale),
 		VSync:       true,
 		Undecorated: true,
 	}
@@ -87,19 +135,21 @@ func run() {
 			return
 		}
 
+		grid = nextGeneration()
 		win.Clear(color.Black)
 
-		// m := pixel.PictureDataFromImage(minimap())
+		w := pixel.PictureDataFromImage(world())
 
-		// pixel.NewSprite(m, m.Bounds()).
-		// 	Draw(win, pixel.IM)
+		pixel.NewSprite(w, w.Bounds()).
+			Draw(win, pixel.IM.
+				Scaled(pixel.ZV, scale).
+				Moved(win.Bounds().Center()))
 
 		win.Update()
 	}
 }
 
 func main() {
-	pixelgl.Run(run)
 	grid = initGrid()
-	fmt.Printf("%+v", grid)
+	pixelgl.Run(run)
 }
