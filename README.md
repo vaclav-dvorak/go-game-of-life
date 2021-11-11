@@ -1,7 +1,9 @@
 # go-game-of-life
+
 Simple implementation of game of life in golang
 
 ## How to run
+
 This needs to be run:
 
 ```bash
