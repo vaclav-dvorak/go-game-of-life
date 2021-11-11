@@ -13,4 +13,4 @@ go run .
 
 ## Troubleshoot
 
-There are some requirements that need to be met before this can be run locally: [https://github.com/faiface/pixel#requirements]
+There are some requirements that need to be met before this can be run locally: <https://github.com/faiface/pixel#requirements>
