@@ -1,4 +1,6 @@
-# go-game-of-life
+# Conway's game of life
+
+![Go version of a Go module](https://img.shields.io/github/go-mod/go-version/vaclav-dvorak/go-game-of-life.svg)
 
 Simple implementation of game of life in golang
 
