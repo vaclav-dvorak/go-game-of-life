@@ -27,7 +27,7 @@ jobs:
           go-version: '1.17' # The Go version to download (if necessary) and use.
 
       - name: Build binary ${{ matrix.goos }}/${{ matrix.goarch }}
-        with:
-          goos: ${{ matrix.goos }}
-          goarch: ${{ matrix.goarch }}
+        env:
+          INPUT_GOOS: ${{ matrix.goos }}
+          INPUT_GOARCH: ${{ matrix.goarch }}
         run: make build-ci
