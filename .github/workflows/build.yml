@@ -1,0 +1,40 @@
+name: Build binary
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - github_repo/**
+      - .github/workflows/tf-github-repo.yml
+
+defaults:
+  run:
+    working-directory: ./github_repo
+
+jobs:
+  build:
+    name: Build binaries
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # build and publish in parallel: linux/386, linux/amd64, windows/386, windows/amd64, darwin/amd64
+        goos: [linux, windows, darwin]
+        goarch: ["386", amd64]
+        exclude:
+          - goarch: "386"
+            goos: darwin
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.17' # The Go version to download (if necessary) and use.
+
+      - name: Build binary ${{ matrix.goos }}/${{ matrix.goarch }}
+        run: make build-ci
+        with:
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}

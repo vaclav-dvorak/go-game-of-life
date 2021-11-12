@@ -2,6 +2,8 @@ GIT_REV?=$$(git rev-parse --short HEAD)
 DATE?=$$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 VERSION?=$$(git describe --tags --always)
 LDFLAGS="-s -w -X main.version=$(VERSION)-$(GIT_REV) -X main.date=$(DATE)"
+goos?=${INPUT_GOOS}
+goarch?=${INPUT_GOARCH}
 
 GREEN  := $(shell tput -Txterm setaf 2)
 YELLOW := $(shell tput -Txterm setaf 3)
@@ -23,6 +25,10 @@ build:  ## Builds the game
 
 buildwin: ## Builds game for Win64
 	@CC=x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 CGO_ENABLED=1 go build -ldflags=$(LDFLAGS) -o ./bin/gol.exe .
+
+build-ci: ## Optimized build for CI
+	@echo $(goos)/$(goarch)
+	@GOOS=$(goos) GOARCH=$(goarch) CGO_ENABLED=1 go build -ldflags=$(LDFLAGS) -o ./bin/gol_$(goos)_$(goarch) .
 
 ## Test:
 coverage:  ## Run test coverage suite
