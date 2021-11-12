@@ -21,8 +21,8 @@ var (
 )
 
 type Cell struct {
-	x, y, decay        int
-	isAlive bool
+	x, y, decay int
+	isAlive     bool
 }
 
 var grid []Cell
@@ -60,10 +60,10 @@ func initGrid() []Cell {
 	for x := 0; x < numCells; x++ {
 		for y := 0; y < numCells; y++ {
 			start[countGridIndex(x, y)] = Cell{
-				x:         x,
-				y:         y,
-				isAlive:   rand.Float64() > 0.5,
-				decay:     0,
+				x:       x,
+				y:       y,
+				isAlive: rand.Float64() > 0.5,
+				decay:   0,
 			}
 			if start[countGridIndex(x, y)].isAlive {
 				start[countGridIndex(x, y)].decay = 6
@@ -76,7 +76,7 @@ func initGrid() []Cell {
 func nextGeneration() []Cell {
 	gen := make([]Cell, numCells*numCells)
 	for idx, cell := range grid {
-		gen[idx] = grid[idx]
+		gen[idx] = cell
 		around := isAlive(cell.x-1, cell.y-1) +
 			isAlive(cell.x, cell.y-1) +
 			isAlive(cell.x+1, cell.y-1) +
@@ -86,7 +86,7 @@ func nextGeneration() []Cell {
 			isAlive(cell.x, cell.y+1) +
 			isAlive(cell.x+1, cell.y+1)
 		if around == 2 { // Do nothing
-			gen[idx].isAlive = grid[idx].isAlive
+			gen[idx].isAlive = cell.isAlive
 		} else if around == 3 { // Make alive
 			gen[idx].isAlive = true
 			gen[idx].decay = 6
