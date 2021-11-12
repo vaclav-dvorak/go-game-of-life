@@ -4,13 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - github_repo/**
-      - .github/workflows/tf-github-repo.yml
-
-defaults:
-  run:
-    working-directory: ./github_repo
 
 jobs:
   build:
